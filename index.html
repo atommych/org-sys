@@ -6,8 +6,8 @@
   <title>Cubos em Rede</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0d1117; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
-    canvas { display: block; width: 100%; max-width: 680px; touch-action: none; cursor: grab; }
+    body { background: #0d1117; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+    canvas { display: block; width: min(96vw, calc(96vh * (680 / 720))); height: auto; max-height: 96vh; touch-action: none; cursor: grab; }
     canvas.dragging { cursor: grabbing; }
   </style>
 </head>
@@ -51,9 +51,19 @@ const edges = [
   [1,2],[3,5],[8,12],
 ];
 
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+const randomizedPositions = shuffle([...positions]);
+
 const nodes = items.map((it,i) => ({
   ...it,
-  x: positions[i].x, y: positions[i].y,
+  x: randomizedPositions[i].x, y: randomizedPositions[i].y,
   phase: Math.random()*Math.PI*2,
   speed: 0.6+Math.random()*0.4,
   dragging: false,
@@ -71,8 +81,9 @@ function hexRgb(h) {
 function getPos(e) {
   const r = canvas.getBoundingClientRect();
   const scaleX = W / r.width;
+  const scaleY = H / r.height;
   const src = e.touches ? e.touches[0] : e;
-  return { x:(src.clientX-r.left)*scaleX, y:(src.clientY-r.top)*scaleX };
+  return { x:(src.clientX-r.left)*scaleX, y:(src.clientY-r.top)*scaleY };
 }
 
 function hitTest(x,y) {
